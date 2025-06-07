@@ -11,7 +11,19 @@ import {
 import * as bcrypt from 'bcrypt';
 import { UserRole } from './types/user-role.type';
 
-@Table({ timestamps: true, paranoid: true, tableName: 'users' })
+@Table({
+  timestamps: true,
+  paranoid: true,
+  tableName: 'users',
+  defaultScope: {
+    attributes: { exclude: ['password', 'deletedAt'] },
+  },
+  scopes: {
+    withPassword: {
+      attributes: { include: ['password', 'deletedAt'] },
+    },
+  },
+})
 export class User extends Model<User> {
   @PrimaryKey
   @Default(DataType.UUIDV4)
@@ -19,16 +31,17 @@ export class User extends Model<User> {
   declare id: string;
 
   @Column
-  fullName: string;
+  declare fullName: string;
 
   @Column({ unique: true })
-  email: string;
+  declare email: string;
 
   @Column
-  password: string;
+  declare password: string;
 
+  @Default(UserRole.VIEWER)
   @Column(DataType.ENUM(...Object.values(UserRole)))
-  role: UserRole;
+  declare role: UserRole;
 
   @BeforeCreate
   @BeforeUpdate
