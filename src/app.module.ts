@@ -7,6 +7,7 @@ import { DatabaseService } from './database/database.service';
 import { UserModule } from './modules/users/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { DocumentModule } from './modules/documents/document.module';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { DocumentModule } from './modules/documents/document.module';
     UserModule,
     AuthModule,
     DocumentModule,
+    CommonModule,
   ],
   controllers: [AppController],
   providers: [AppService, DatabaseService],
