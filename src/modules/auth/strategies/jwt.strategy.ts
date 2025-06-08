@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { FastifyReply } from 'fastify';
+import { FastifyRequest } from 'fastify';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -9,7 +9,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        (request: FastifyReply) => request.cookies?.access_token,
+        (request: FastifyRequest) => request.cookies?.access_token,
       ]),
       ignoreExpiration: false,
       secretOrKey: configService.get<string>('JWT_SECRET'),
