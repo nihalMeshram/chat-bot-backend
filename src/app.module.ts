@@ -6,6 +6,7 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { DatabaseService } from './database/database.service';
 import { UserModule } from './modules/users/user.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { DocumentModule } from './modules/documents/document.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { AuthModule } from './modules/auth/auth.module';
     }),
     UserModule,
     AuthModule,
+    DocumentModule,
   ],
   controllers: [AppController],
   providers: [AppService, DatabaseService],
