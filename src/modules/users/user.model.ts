@@ -10,6 +10,8 @@ import {
 } from 'sequelize-typescript';
 import * as bcrypt from 'bcrypt';
 import { UserRole } from './types/user-role.type';
+import { HasMany } from 'sequelize-typescript';
+import { Document } from '../documents/document.model';
 
 @Table({
   timestamps: true,
@@ -42,6 +44,9 @@ export class User extends Model<User> {
   @Default(UserRole.VIEWER)
   @Column(DataType.ENUM(...Object.values(UserRole)))
   declare role: UserRole;
+
+  @HasMany(() => Document, 'createdBy')
+  documents: Document[];
 
   @BeforeCreate
   @BeforeUpdate
