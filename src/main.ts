@@ -21,7 +21,11 @@ async function bootstrap() {
       transform: true, // auto-transform to DTO types (e.g. string → number)
     }),
   );
-  await app.register(multipart);
+  await app.register(multipart, {
+    limits: {
+      fileSize: 25 * 1024 * 1024
+    }
+  });
   await app.register(fastifyCookie);
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT') || 3000;
