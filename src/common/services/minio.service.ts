@@ -6,17 +6,17 @@ import {
   GetObjectCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { Readable } from 'stream';
 
 @Injectable()
 export class MinioService {
   private s3: S3Client;
   private bucket: string;
 
-  constructor(private configService: ConfigService) {
-    this.bucket = this.configService.get<string>('MINIO_BUCKET', 'documents');
-
+  constructor(private readonly configService: ConfigService) {
+    this.bucket = this.configService.get<string>('MINIO_BUCKET') || '';
     this.s3 = new S3Client({
-      region: 'us-east-1',
+      region: this.configService.get<string>('MINIO_REGION') || 'us-east-1',
       endpoint: this.configService.get<string>('MINIO_ENDPOINT'),
       credentials: {
         accessKeyId: this.configService.get<string>('MINIO_ROOT_USER') || '',
@@ -26,7 +26,12 @@ export class MinioService {
     });
   }
 
-  async upload(buffer: Buffer, key: string, contentType: string) {
+  async uploadStream(stream: Readable, key: string, contentType: string) {
+    const chunks: any[] = [];
+    for await (const chunk of stream) {
+      chunks.push(chunk);
+    }
+    const buffer = Buffer.concat(chunks);
     const command = new PutObjectCommand({
       Bucket: this.bucket,
       Key: key,
