@@ -7,6 +7,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import fastifyCookie from '@fastify/cookie';
+import multipart from '@fastify/multipart';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -20,6 +21,7 @@ async function bootstrap() {
       transform: true, // auto-transform to DTO types (e.g. string → number)
     }),
   );
+  await app.register(multipart);
   await app.register(fastifyCookie);
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT') || 3000;
