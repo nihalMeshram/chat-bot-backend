@@ -6,6 +6,7 @@ import {
   Req,
   ParseUUIDPipe,
   UseGuards,
+  BadRequestException,
 } from '@nestjs/common';
 import { DocumentService } from './document.service';
 import { FastifyRequest } from 'fastify';
@@ -20,15 +21,14 @@ export class DocumentController {
   @Post('upload')
   async upload(@Req() req: FastifyRequest) {
     const parts = req.parts();
+    const userId = (req.user as any).userId;
     for await (const part of parts) {
-      if (part.type === 'file') {
-        const userId = (req.user as any).userId;
+      if (part.type === 'file' && part.filename) {
         const file = part as MultipartFile;
         return this.docService.uploadDocument(file, userId);
       }
     }
-
-    return { message: 'No file uploaded' };
+    throw new BadRequestException('No file uploaded');
   }
 
   @Get(':id')
