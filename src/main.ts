@@ -8,12 +8,14 @@ import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import fastifyCookie from '@fastify/cookie';
 import multipart from '@fastify/multipart';
+import { AllExceptionsFilter } from '@common/filters/all-exceptions.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({ logger: true })
+    new FastifyAdapter()
   );
+  app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true, // strips unknown fields
