@@ -7,7 +7,7 @@ import { CreationAttributes } from 'sequelize';
 
 @Injectable()
 export class DocumentService {
-  private basePath = 'documents';
+  private readonly basePath = 'documents';
   constructor(
     @InjectModel(Document) private readonly documentModel: typeof Document,
     private readonly minioService: MinioService,
@@ -20,14 +20,9 @@ export class DocumentService {
       createdBy: userId,
     } as CreationAttributes<Document>) as Document;
 
-    try {
-      await this.minioService.uploadStream(file.file, `${this.basePath}/${doc.id}`, file.mimetype);
-      await doc.save(); // only save after upload success
-      return doc;
-    } catch (err) {
-      // optional: log error or rethrow
-      throw new Error('File upload failed, document not saved.');
-    }
+    await this.minioService.uploadStream(file.file, `${this.basePath}/${doc.id}`, file.mimetype);
+    await doc.save(); // only save after upload success
+    return doc;
   }
 
   async getDocumentUrl(documentId: string) {
