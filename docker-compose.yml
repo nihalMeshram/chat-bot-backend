@@ -1,4 +1,36 @@
 services:
+  chat-bot-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: ${NODE_ENV}
+    container_name: chat-bot-backend
+    restart: always
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_REGION: ${MINIO_REGION}
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    volumes:
+      - .:/app
+      - /app/node_modules
+
   postgres:
     image: postgres:latest
     container_name: chat-bot-db
@@ -20,6 +52,7 @@ services:
 
   minio:
     image: minio/minio
+    container_name: chat-bot-minio
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -31,6 +64,5 @@ services:
       - minio_data:/data
 
 volumes:
-  minio_data:
   pgdata:
-    driver: local
+  minio_data:
