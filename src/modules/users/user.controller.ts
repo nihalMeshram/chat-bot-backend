@@ -10,10 +10,17 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto, UpdateUserDto } from './dtos';
+import {
+  CreateUserDto,
+  UpdateUserDto,
+  UserResponseDto,
+  DeleteUserResponseDto,
+  RestoreUserResponseDto,
+} from './dtos';
 import { UserRole } from './types/user-role.type';
 import { Roles } from '@common/decorators/roles.decorator';
 import { JwtAuthGuard, RolesGuard } from '../auth/guards';
+import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 
 @Controller('users') // Routes all endpoints under /users
 @UseGuards(JwtAuthGuard, RolesGuard) // Applies JWT authentication and role-based authorization
@@ -26,7 +33,12 @@ export class UserController {
    * Route: POST /users
    */
   @Post()
-  create(@Body() dto: CreateUserDto) {
+  @ApiOkResponse({
+    description: 'The user has been successfully created.',
+    type: UserResponseDto,
+  })
+  @ApiOperation({ summary: 'Create new user', description: 'Creates new user with given role' })
+  create(@Body() dto: CreateUserDto): Promise<UserResponseDto> {
     return this.userService.create(dto);
   }
 
@@ -35,7 +47,13 @@ export class UserController {
    * Route: GET /users
    */
   @Get()
-  findAll() {
+  @ApiOkResponse({
+    description: 'Fetch all users successfully.',
+    type: UserResponseDto,
+    isArray: true,
+  })
+  @ApiOperation({ summary: 'Fetch all users', description: 'Returns all users' })
+  findAll(): Promise<UserResponseDto[]> {
     return this.userService.findAll();
   }
 
@@ -45,7 +63,12 @@ export class UserController {
    * Validates the ID as a UUID.
    */
   @Get(':id')
-  findOne(@Param('id', new ParseUUIDPipe()) id: string) {
+  @ApiOkResponse({
+    description: 'Fetch user by id successfully.',
+    type: UserResponseDto,
+  })
+  @ApiOperation({ summary: 'Fetch users by id', description: 'Returns user by id' })
+  findOne(@Param('id', new ParseUUIDPipe()) id: string): Promise<UserResponseDto> {
     return this.userService.findOne(id);
   }
 
@@ -55,7 +78,15 @@ export class UserController {
    * Validates the ID as a UUID.
    */
   @Put(':id')
-  update(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: UpdateUserDto) {
+  @ApiOkResponse({
+    description: 'The user has been successfully updated.',
+    type: UserResponseDto,
+  })
+  @ApiOperation({ summary: 'Update user by id', description: 'Updates user with given id' })
+  update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: UpdateUserDto
+  ): Promise<UserResponseDto> {
     return this.userService.update(id, dto);
   }
 
@@ -65,7 +96,12 @@ export class UserController {
    * Validates the ID as a UUID.
    */
   @Delete(':id')
-  remove(@Param('id', new ParseUUIDPipe()) id: string) {
+  @ApiOkResponse({
+    description: 'The user has been successfully deleted.',
+    type: DeleteUserResponseDto,
+  })
+  @ApiOperation({ summary: 'Delete user by id', description: 'Deletes user with given id' })
+  remove(@Param('id', new ParseUUIDPipe()) id: string): Promise<DeleteUserResponseDto> {
     return this.userService.remove(id);
   }
 
@@ -75,7 +111,12 @@ export class UserController {
    * Validates the ID as a UUID.
    */
   @Put(':id/restore')
-  restore(@Param('id', new ParseUUIDPipe()) id: string) {
+  @ApiOkResponse({
+    description: 'The user has been successfully restored.',
+    type: RestoreUserResponseDto,
+  })
+  @ApiOperation({ summary: 'Restore user by id', description: 'Restore user with given id' })
+  restore(@Param('id', new ParseUUIDPipe()) id: string): Promise<RestoreUserResponseDto> {
     return this.userService.restore(id);
   }
 }
