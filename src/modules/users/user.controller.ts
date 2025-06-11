@@ -21,7 +21,7 @@ import {
 import { UserRole } from './types/user-role.type';
 import { Roles } from '@common/decorators/roles.decorator';
 import { JwtAuthGuard, RolesGuard } from '../auth/guards';
-import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 
 @Controller('users') // Routes all endpoints under /users
 @UseGuards(JwtAuthGuard, RolesGuard) // Applies JWT authentication and role-based authorization
@@ -35,7 +35,7 @@ export class UserController {
    */
   @Post()
   @HttpCode(201)
-  @ApiOkResponse({
+  @ApiCreatedResponse({
     description: 'The user has been successfully created.',
     type: UserResponseDto,
   })

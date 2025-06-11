@@ -14,7 +14,7 @@ import {
   RegisterResponseDto,
   LogoutResponseDto,
 } from './dtos';
-import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 
 @Controller('auth')
 export class AuthController {
@@ -28,7 +28,7 @@ export class AuthController {
    */
   @Post('register')
   @HttpCode(201)
-  @ApiOkResponse({
+  @ApiCreatedResponse({
     description: 'The user has been successfully registered.',
     type: RegisterResponseDto,
   })

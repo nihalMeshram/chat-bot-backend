@@ -7,6 +7,7 @@ import {
   ParseUUIDPipe,
   UseGuards,
   BadRequestException,
+  HttpCode,
 } from '@nestjs/common';
 import { DocumentService } from './document.service';
 import { FastifyRequest } from 'fastify';
@@ -16,7 +17,9 @@ import {
   UploadDocumentResponseDto,
   GetDocumentUrlResponseDto,
   GetDocumentResponseDto,
+  UploadDocumentDto,
 } from './dtos';
+import { ApiBody, ApiConsumes, ApiCreatedResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 
 @Controller('documents')
 @UseGuards(AuthGuard('jwt')) // Protect all routes with JWT authentication
@@ -31,6 +34,17 @@ export class DocumentController {
    * Returns document metadata after upload.
    */
   @Post('upload')
+  @HttpCode(201)
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({ type: UploadDocumentDto })
+  @ApiCreatedResponse({
+    description: 'Upload document successfully',
+    type: UploadDocumentResponseDto,
+  })
+  @ApiOperation({
+    summary: 'Upload document',
+    description: 'Upload a document using multipart/form-data',
+  })
   async upload(@Req() req: FastifyRequest): Promise<UploadDocumentResponseDto> {
     const parts = req.parts(); // Access multipart parts from Fastify
     const userId = (req.user as any).userId; // Extract user ID from JWT payload
@@ -54,6 +68,14 @@ export class DocumentController {
    * Returns a signed URL or equivalent to download the file.
    */
   @Get(':id')
+  @ApiOkResponse({
+    description: 'Fetch document url successfully.',
+    type: GetDocumentUrlResponseDto,
+  })
+  @ApiOperation({
+    summary: 'Fetch document url',
+    description: 'Returns downloadable document url',
+  })
   async getDocumentUrl(@Param('id', new ParseUUIDPipe()) id: string): Promise<GetDocumentUrlResponseDto> {
     return await this.docService.getDocumentUrl(id);
   }
@@ -64,6 +86,15 @@ export class DocumentController {
    * Returns an array of document metadata.
    */
   @Get()
+  @ApiOkResponse({
+    description: 'Fetch all documents successfully.',
+    type: GetDocumentResponseDto,
+    isArray: true,
+  })
+  @ApiOperation({
+    summary: 'Fetch all documents',
+    description: 'Returns all documents',
+  })
   async findAll(): Promise<GetDocumentResponseDto[]> {
     return await this.docService.findAll();
   }
