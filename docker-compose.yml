@@ -3,12 +3,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        NODE_ENV: ${NODE_ENV}
     container_name: chat-bot-backend
     restart: always
     environment:
-      NODE_ENV: ${NODE_ENV}
+      NODE_ENV: production
       DB_HOST: postgres
       DB_PORT: 5432
       DB_USER: ${DB_USER}
