@@ -20,5 +20,5 @@ export class GetDocumentResponseDto {
   updatedAt: Date;
 
   @Exclude()
-  deletedAt: Date;
+  deletedAt?: Date;
 }
