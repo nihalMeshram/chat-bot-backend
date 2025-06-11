@@ -24,7 +24,7 @@ import { CommonModule } from './common/common.module';
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
         autoLoadModels: true,
-        synchronize: true,
+        synchronize: configService.get<string>('NODE_ENV') === 'development',
       }),
       inject: [ConfigService],
     }),
