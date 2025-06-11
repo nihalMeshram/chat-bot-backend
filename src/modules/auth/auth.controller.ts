@@ -7,7 +7,14 @@ import {
 } from '@nestjs/common';
 import { FastifyReply } from 'fastify';
 import { AuthService } from './auth.service';
-import { LoginDto, RegisterDto } from './dtos';
+import {
+  LoginDto,
+  RegisterDto,
+  LoginResponseDto,
+  RegisterResponseDto,
+  LogoutResponseDto,
+} from './dtos';
+import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 
 @Controller('auth')
 export class AuthController {
@@ -20,7 +27,13 @@ export class AuthController {
    * @returns A success message on successful registration
    */
   @Post('register')
-  register(@Body() dto: RegisterDto) {
+  @HttpCode(201)
+  @ApiOkResponse({
+    description: 'The user has been successfully registered.',
+    type: RegisterResponseDto,
+  })
+  @ApiOperation({ summary: 'Register new user', description: 'Registers new user as viewer' })
+  register(@Body() dto: RegisterDto): Promise<RegisterResponseDto> {
     return this.authService.register(dto);
   }
 
@@ -33,7 +46,12 @@ export class AuthController {
    */
   @Post('login')
   @HttpCode(200) // Override default 201 status for POST; return 200 instead
-  async login(@Body() dto: LoginDto, @Res() reply: FastifyReply) {
+  @ApiOkResponse({
+      description: 'The user has been successfully logged in.',
+    type: LoginResponseDto,
+  })
+  @ApiOperation({ summary: 'User login', description: 'User login api' })
+  async login(@Body() dto: LoginDto, @Res() reply: FastifyReply): Promise<LoginResponseDto> {
     const { accessToken } = await this.authService.login(dto);
 
     // Set access token in an HTTP-only cookie
@@ -45,7 +63,7 @@ export class AuthController {
       maxAge: 60 * 60 * 24,                    // Cookie expires in 1 day
     });
 
-    return reply.send({ message: 'Login successful' });
+    return reply.send({ message: 'Login successfully' });
   }
 
   /**
@@ -55,6 +73,11 @@ export class AuthController {
    * @returns A success message on successful logout
    */
   @Post('logout')
+  @ApiOkResponse({
+    description: 'The user has been successfully logged out.',
+    type: LogoutResponseDto,
+  })
+  @ApiOperation({ summary: 'User logout', description: 'User logout api' })
   logout(@Res() reply: FastifyReply) {
     // Remove the cookie by clearing it
     reply.clearCookie('access_token');
