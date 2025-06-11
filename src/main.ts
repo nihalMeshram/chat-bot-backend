@@ -9,12 +9,23 @@ import { ConfigService } from '@nestjs/config';
 import fastifyCookie from '@fastify/cookie';
 import multipart from '@fastify/multipart';
 import { AllExceptionsFilter } from '@common/filters/all-exceptions.filter';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter()
   );
+  const config = new DocumentBuilder()
+    .setTitle('Chat Bot API')
+    .setDescription('API for chat bot')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
+
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalPipes(
     new ValidationPipe({
