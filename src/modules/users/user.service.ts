@@ -13,8 +13,12 @@ import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel(User) private userModel: typeof User) {}
+  constructor(@InjectModel(User) private userModel: typeof User) { }
 
+  /**
+   * Creates a new user.
+   * Handles unique constraint and validation errors.
+   */
   async create(dto: CreateUserDto): Promise<UserResponseDto> {
     try {
       const user = await this.userModel.create(dto as CreationAttributes<User>);
@@ -30,6 +34,10 @@ export class UserService {
     }
   }
 
+  /**
+   * Updates an existing user by ID.
+   * Throws Exception if user not found or validation fails.
+   */
   async update(id: string, dto: UpdateUserDto): Promise<UserResponseDto> {
     const user = await this.findByPk(id);
     try {
@@ -46,22 +54,37 @@ export class UserService {
     }
   }
 
+  /**
+   * Retrieves all users from the database.
+   * Returns [] if no user found.
+   */
   async findAll(): Promise<UserResponseDto[]> {
     const users = await this.userModel.findAll();
     return plainToInstance(UserResponseDto, users.map(user => user.get({ plain: true })));
   }
 
+  /**
+   * Retrieves a single user by ID.
+   * Throws NotFoundException if not found.
+   */
   async findOne(id: string): Promise<UserResponseDto> {
     const user = await this.findByPk(id);
     return plainToInstance(UserResponseDto, user.get({ plain: true }));
   }
 
+  /**
+   * Deletes a user (soft delete).
+   */
   async remove(id: string): Promise<{ message: string }> {
     const user = await this.findByPk(id);
     await user.destroy();
     return { message: 'User deleted successfully' };
   }
 
+  /**
+   * Restores a soft-deleted user by ID.
+   * Throws NotFoundException if user not found.
+   */
   async restore(id: string): Promise<{ message: string }> {
     const user = await this.userModel.findByPk(id, { paranoid: false });
     if (!user) {
@@ -71,12 +94,20 @@ export class UserService {
     return { message: 'User restored successfully' };
   }
 
+  /**
+   * Helper method to fetch a user by primary key.
+   * Throws NotFoundException if not found.
+   */
   async findByPk(id: string): Promise<User> {
     const user = await this.userModel.findByPk(id);
     if (!user) throw new NotFoundException('User not found');
     return user;
   }
 
+  /**
+   * Validates a user by email and password.
+   * Returns the user if credentials match, else null.
+   */
   async validateUser(email: string, plainPassword: string): Promise<User | null> {
     const user = await this.userModel.scope('withPassword').findOne({ where: { email } });
     if (user && await bcrypt.compare(plainPassword, user.password)) {
