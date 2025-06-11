@@ -8,6 +8,7 @@ import {
   Delete,
   ParseUUIDPipe,
   UseGuards,
+  HttpCode,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import {
@@ -33,6 +34,7 @@ export class UserController {
    * Route: POST /users
    */
   @Post()
+  @HttpCode(201)
   @ApiOkResponse({
     description: 'The user has been successfully created.',
     type: UserResponseDto,
