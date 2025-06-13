@@ -9,6 +9,7 @@ import {
   BelongsTo,
 } from 'sequelize-typescript';
 import { User } from '../users/user.model';
+import { DocumentStatus } from './types/document.status.type';
 
 @Table({
   timestamps: true,
@@ -26,6 +27,10 @@ export class Document extends Model<Document> {
 
   @Column(DataType.STRING)
   declare type: string;
+
+  @Default(DocumentStatus.TO_BE_INGESTED)
+  @Column(DataType.ENUM(...Object.values(DocumentStatus)))
+  declare status: DocumentStatus;
 
   @ForeignKey(() => User)
   @Column(DataType.UUID)
