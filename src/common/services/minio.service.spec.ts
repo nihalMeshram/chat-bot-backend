@@ -3,7 +3,7 @@ import { MinioService } from './minio.service';
 import { ConfigService } from '@nestjs/config';
 import { Readable } from 'stream';
 import { Upload } from '@aws-sdk/lib-storage';
-import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 jest.mock('@aws-sdk/lib-storage', () => ({
@@ -87,6 +87,28 @@ describe('MinioService', () => {
         { expiresIn: 3600 }
       );
       expect(url).toBe(mockUrl);
+    });
+  });
+
+  describe('deleteObject', () => {
+    it('should send a DeleteObjectCommand to S3', async () => {
+      const sendMock = jest.fn().mockResolvedValue({});
+      // Override the private s3 client with a mock
+      (service as any).s3.send = sendMock;
+
+      const key = 'file-to-delete.pdf';
+
+      await service.deleteObject(key);
+
+      expect(sendMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          input: {
+            Bucket: 'test-bucket',
+            Key: key,
+          },
+          constructor: DeleteObjectCommand,
+        })
+      );
     });
   });
 });

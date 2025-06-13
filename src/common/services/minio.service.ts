@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import {
   S3Client,
   GetObjectCommand,
+  DeleteObjectCommand,
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -78,5 +79,19 @@ export class MinioService {
 
     // Generate signed URL with 1-hour expiry
     return getSignedUrl(this.s3, command, { expiresIn: 3600 });
+  }
+
+  /**
+   * Deletes an object from MinIO.
+   *
+   * @param key - The key (path/filename) of the file to delete
+   */
+  async deleteObject(key: string): Promise<void> {
+    const command = new DeleteObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+    });
+
+    await this.s3.send(command);
   }
 }
