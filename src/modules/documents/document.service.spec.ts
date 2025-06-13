@@ -130,4 +130,34 @@ describe('DocumentService', () => {
       expect(result[0].id).toBe('uuid-123');
     });
   });
+
+  describe('deleteDocumentUrl', () => {
+    it('should delete document and return success message', async () => {
+      const documentId = 'uuid-123';
+
+      // Mock findByPk to return a document
+      documentModelMock.findByPk.mockResolvedValue(mockDocumentInstance);
+      // Mock destroy
+      documentModelMock.destroy = jest.fn().mockResolvedValue(1);
+      // Mock minio deleteObject
+      minioServiceMock.deleteObject = jest.fn().mockResolvedValue(undefined);
+
+      const result = await service.deleteDocument(documentId);
+
+      expect(documentModelMock.findByPk).toHaveBeenCalledWith(documentId);
+      expect(minioServiceMock.deleteObject).toHaveBeenCalledWith(`documents/${documentId}`);
+      expect(documentModelMock.destroy).toHaveBeenCalledWith({
+        where: { id: documentId },
+        force: true,
+      });
+      expect(result).toEqual({ message: 'Document deleted successfully' });
+    });
+
+    it('should throw NotFoundException if document does not exist', async () => {
+      documentModelMock.findByPk.mockResolvedValue(null);
+
+      await expect(service.deleteDocument('non-existent-id')).rejects.toThrow(NotFoundException);
+    });
+  });
+
 });

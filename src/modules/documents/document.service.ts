@@ -9,6 +9,7 @@ import {
   UploadDocumentResponseDto,
   GetDocumentUrlResponseDto,
   GetDocumentResponseDto,
+  DeleteDocumentResponseDto,
 } from './dtos';
 
 @Injectable()
@@ -71,5 +72,22 @@ export class DocumentService {
       GetDocumentResponseDto,
       documents.map(document => document.get({ plain: true }))
     );
+  }
+
+  /**
+   * Deletes a user (permanent delete).
+   * @param documentId - UUID of the documen
+   * @returns success message if document deleted successfully
+   * @throws NotFoundException if the document does not exist
+   */
+  async deleteDocument(documentId: string): Promise<DeleteDocumentResponseDto> {
+    const document = await this.documentModel.findByPk(documentId);
+    if (!document) throw new NotFoundException('Document not found');
+    await this.minioService.deleteObject(`${this.basePath}/${documentId}`);
+    await this.documentModel.destroy({
+      where: { id: documentId },
+      force: true,
+    });
+    return { message: 'Document deleted successfully' };
   }
 }
