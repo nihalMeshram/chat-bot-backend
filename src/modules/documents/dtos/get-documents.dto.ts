@@ -20,6 +20,13 @@ export class GetDocumentResponseDto {
   fileName: string;
 
   @ApiProperty({
+    description: 'Uploaded document status',
+    example: 'un_ingested',
+  })
+  @Expose()
+  status: string;
+
+  @ApiProperty({
     description: 'MIME type of the document',
     example: 'application/pdf',
   })
