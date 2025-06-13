@@ -18,6 +18,7 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
       MINIO_ENDPOINT: http://minio:9000
       MINIO_REGION: ${MINIO_REGION}
+      MINIO_BUCKET: ${MINIO_BUCKET}
     ports:
       - "3000:3000"
     depends_on:

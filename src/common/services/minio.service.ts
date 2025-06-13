@@ -22,15 +22,15 @@ export class MinioService {
    */
   constructor(private readonly configService: ConfigService) {
     // Retrieve bucket name from environment variables
-    this.bucket = this.configService.get<string>('MINIO_BUCKET') || '';
+    this.bucket = this.configService.get<string>('MINIO_BUCKET') as string;
 
     // Initialize the S3 client to communicate with MinIO server
     this.s3 = new S3Client({
       region: this.configService.get<string>('MINIO_REGION') || 'us-east-1',
       endpoint: this.configService.get<string>('MINIO_ENDPOINT'),
       credentials: {
-        accessKeyId: this.configService.get<string>('MINIO_ROOT_USER') || '',
-        secretAccessKey: this.configService.get<string>('MINIO_ROOT_PASSWORD') || '',
+        accessKeyId: this.configService.get<string>('MINIO_ROOT_USER') as string,
+        secretAccessKey: this.configService.get<string>('MINIO_ROOT_PASSWORD') as string,
       },
       // Use path-style URLs (e.g., http://localhost:9000/bucket/key)
       forcePathStyle: true,
