@@ -13,6 +13,7 @@ describe('DocumentController', () => {
   const mockUploadDocument: UploadDocumentResponseDto = {
     id: 'doc-id',
     fileName: 'test.pdf',
+    status: 'un_ingested',
     type: 'application/pdf',
     createdBy: 'user-id',
     createdAt: new Date(),
@@ -23,6 +24,7 @@ describe('DocumentController', () => {
   const mockDocument: GetDocumentResponseDto = {
     id: 'doc-id',
     fileName: 'test.pdf',
+    status: 'un_ingested',
     type: 'application/pdf',
     createdBy: 'user-id',
     createdAt: new Date(),
@@ -38,6 +40,7 @@ describe('DocumentController', () => {
     uploadDocument: jest.fn().mockResolvedValue(mockUploadDocument),
     getDocumentUrl: jest.fn().mockResolvedValue(mockDocumentUrl),
     findAll: jest.fn().mockResolvedValue([mockDocument]),
+    deleteDocument: jest.fn().mockResolvedValue({ message: 'Document deleted successfully'}),
   };
 
   beforeEach(async () => {
@@ -103,4 +106,20 @@ describe('DocumentController', () => {
       expect(service.findAll).toHaveBeenCalled();
     });
   });
+
+  describe('deleteDocument()', () => {
+    it('should delete the document and return a success message', async () => {
+      const mockDeleteResponse = { message: 'Document deleted successfully' };
+      const docId = 'doc-id';
+
+      // Add the mocked delete method to the service
+      mockService.deleteDocument = jest.fn().mockResolvedValue(mockDeleteResponse);
+
+      const result = await controller.deleteDocument(docId);
+
+      expect(service.deleteDocument).toHaveBeenCalledWith(docId);
+      expect(result).toEqual(mockDeleteResponse);
+    });
+  });
+
 });

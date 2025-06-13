@@ -8,6 +8,7 @@ import {
   UseGuards,
   BadRequestException,
   HttpCode,
+  Delete,
 } from '@nestjs/common';
 import { DocumentService } from './document.service';
 import { FastifyRequest } from 'fastify';
@@ -18,6 +19,7 @@ import {
   GetDocumentUrlResponseDto,
   GetDocumentResponseDto,
   UploadDocumentDto,
+  DeleteDocumentResponseDto,
 } from './dtos';
 import { ApiBody, ApiConsumes, ApiCreatedResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 
@@ -63,11 +65,11 @@ export class DocumentController {
 
   /**
    * Get a secure download URL for a document.
-   * Route: GET /documents/:id
+   * Route: GET /documents/download/:id
    * @param id - UUID of the document
    * Returns a signed URL or equivalent to download the file.
    */
-  @Get(':id')
+  @Get('download/:id')
   @ApiOkResponse({
     description: 'Fetch document url successfully.',
     type: GetDocumentUrlResponseDto,
@@ -78,6 +80,25 @@ export class DocumentController {
   })
   async getDocumentUrl(@Param('id', new ParseUUIDPipe()) id: string): Promise<GetDocumentUrlResponseDto> {
     return await this.docService.getDocumentUrl(id);
+  }
+
+  /**
+   * Deletes a user (permanent delete).
+   * @param documentId - UUID of the documen
+   * @returns success message if document deleted successfully
+   * @throws NotFoundException if the document does not exist
+   */
+  @Delete(':id')
+  @ApiOkResponse({
+    description: 'Delete document successfully.',
+    type: DeleteDocumentResponseDto,
+  })
+  @ApiOperation({
+    summary: 'Delete document',
+    description: 'Deletes a document',
+  })
+  async deleteDocument(@Param('id', new ParseUUIDPipe()) id: string): Promise<DeleteDocumentResponseDto> {
+    return await this.docService.deleteDocument(id);
   }
 
   /**
