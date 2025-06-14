@@ -10,6 +10,7 @@ import fastifyCookie from '@fastify/cookie';
 import multipart from '@fastify/multipart';
 import { AllExceptionsFilter } from '@common/filters/all-exceptions.filter';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import cors from '@fastify/cors';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -34,6 +35,13 @@ async function bootstrap() {
       transform: true, // auto-transform to DTO types (e.g. string → number)
     }),
   );
+
+  // ✅ Register CORS plugin
+  await app.register(cors, {
+    origin: true, // allow all origins
+    credentials: true, // if using cookies/auth
+  });
+
   await app.register(multipart, {
     limits: {
       fileSize: 25 * 1024 * 1024
