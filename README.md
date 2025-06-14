@@ -77,13 +77,26 @@ $ docker compose up -d --build
 
 After installing dependencies or starting the application, make sure to:
 
-1. Run Database Migrations
+#### 1. Run Database Migrations
 ```bash
 # Apply all database migrations
-$ npm run migrate
+$ npm run migration:run
+
+# Run seeder to create default users
+$ npm run seeder:run 
 ```
 
-2. Create MinIO Bucket
+#### 2. Default User Credentials
+
+| Role   | Full Name   | Email                                           | Password       |
+| ------ | ----------- | ----------------------------------------------- | -------------- |
+| Admin  | Admin User  | [admin@example.com](mailto:admin@example.com)   | AdminPass123!  |
+| Editor | Editor User | [editor@example.com](mailto:editor@example.com) | EditorPass123! |
+| Viewer | Viewer User | [viewer@example.com](mailto:viewer@example.com) | ViewerPass123! |
+
+🔐 Note: Passwords are hashed using bcrypt and are safe for local development. Make sure to change them in production environments.
+
+#### 3. Create MinIO Bucket
 Ensure the bucket specified as MINIO_BUCKET in your .env file exists.
 
 - Open: http://localhost:9001
