@@ -26,9 +26,9 @@ services:
         condition: service_healthy
       minio:
         condition: service_started
-    volumes:
-      - .:/app
-      - /app/node_modules
+    # volumes:
+      # - .:/app
+      # - /app/node_modules
 
   postgres:
     image: postgres:latest
