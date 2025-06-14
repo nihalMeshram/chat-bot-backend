@@ -5,11 +5,15 @@ import { getModelToken } from '@nestjs/sequelize';
 import { Document } from './document.model';
 import { NotFoundException } from '@nestjs/common';
 import { Readable } from 'stream';
+import { BadRequestException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { DocumentStatus } from './types/document.status.type';
 
 describe('DocumentService', () => {
   let service: DocumentService;
   let documentModelMock: any;
   let minioServiceMock: MinioService;
+  let configService: ConfigService;
 
   const mockDocumentInstance = {
     id: 'uuid-123',
@@ -36,6 +40,10 @@ describe('DocumentService', () => {
       findAll: jest.fn(),
     };
 
+    const configServiceMock = {
+      get: jest.fn().mockReturnValue('http://python-backend'),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         DocumentService,
@@ -50,11 +58,16 @@ describe('DocumentService', () => {
             getSignedUrl: jest.fn(),
           },
         },
+        {
+          provide: ConfigService,
+          useValue: configServiceMock,
+        },
       ],
     }).compile();
 
     service = module.get<DocumentService>(DocumentService);
     minioServiceMock = module.get<MinioService>(MinioService);
+    configService = module.get<ConfigService>(ConfigService)
   });
 
   afterEach(() => {
@@ -157,6 +170,86 @@ describe('DocumentService', () => {
       documentModelMock.findByPk.mockResolvedValue(null);
 
       await expect(service.deleteDocument('non-existent-id')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('updateDocumentStatus', () => {
+    it('should update the document status if valid', async () => {
+      const mockSave = jest.fn();
+      documentModelMock.findByPk.mockResolvedValue({ ...mockDocumentInstance, save: mockSave });
+
+      await service.updateDocumentStatus('uuid-123', DocumentStatus.INGESTING);
+
+      expect(documentModelMock.findByPk).toHaveBeenCalledWith('uuid-123');
+      expect(mockSave).toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException for invalid status', async () => {
+      documentModelMock.findByPk.mockResolvedValue(mockDocumentInstance);
+
+      await expect(service.updateDocumentStatus('uuid-123', 'invalid_status' as any)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should throw NotFoundException if document does not exist', async () => {
+      documentModelMock.findByPk.mockResolvedValue(null);
+
+      await expect(service.updateDocumentStatus('invalid-id', DocumentStatus.FAILED)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('triggerIngestion', () => {
+    let fetchMock: jest.SpyInstance;
+
+    beforeEach(() => {
+      fetchMock = jest.spyOn(global, 'fetch' as any).mockImplementation();
+    });
+
+    afterEach(() => {
+      fetchMock.mockRestore();
+    });
+
+    it('should trigger ingestion and update document status', async () => {
+      const mockUpdate = jest.fn();
+      const mockDoc = {
+        ...mockDocumentInstance,
+        update: mockUpdate,
+      };
+      documentModelMock.findByPk.mockResolvedValue(mockDoc);
+      (minioServiceMock.getSignedUrl as jest.Mock).mockResolvedValue('https://signed.url');
+
+      fetchMock.mockResolvedValue({ ok: true });
+
+      const result = await service.triggerIngestion('uuid-123');
+
+      expect(configService.get).toHaveBeenCalledWith('PYTHON_BACKEND_URL');
+      expect(minioServiceMock.getSignedUrl).toHaveBeenCalledWith('documents/uuid-123');
+      expect(fetchMock).toHaveBeenCalledWith('http://python-backend/ingest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          documentId: 'uuid-123',
+          downloadUrl: 'https://signed.url',
+        }),
+      });
+      expect(mockUpdate).toHaveBeenCalledWith({ status: DocumentStatus.INGESTING });
+      expect(result).toEqual({ message: 'Ingestion triggered successfully' });
+    });
+
+    it('should throw error if fetch fails', async () => {
+      const mockDoc = {
+        ...mockDocumentInstance,
+        update: jest.fn(),
+      };
+      documentModelMock.findByPk.mockResolvedValue(mockDoc);
+      (minioServiceMock.getSignedUrl as jest.Mock).mockResolvedValue('https://signed.url');
+
+      fetchMock.mockResolvedValue({ ok: false, statusText: 'Internal Server Error' });
+      await expect(service.triggerIngestion('uuid-123')).rejects.toThrow('Failed to trigger ingestion: Internal Server Error');
+      expect(configService.get).toHaveBeenCalledWith('PYTHON_BACKEND_URL');
     });
   });
 

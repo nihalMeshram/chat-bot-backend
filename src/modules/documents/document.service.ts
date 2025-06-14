@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Document } from './document.model';
 import { MinioService } from '@common/services/minio.service';
@@ -11,6 +11,8 @@ import {
   GetDocumentResponseDto,
   DeleteDocumentResponseDto,
 } from './dtos';
+import { ConfigService } from '@nestjs/config';
+import { DocumentStatus } from './types/document.status.type';
 
 @Injectable()
 export class DocumentService {
@@ -20,6 +22,7 @@ export class DocumentService {
   constructor(
     @InjectModel(Document) private readonly documentModel: typeof Document, // Sequelize model for the Document entity
     private readonly minioService: MinioService, // Custom service for interacting with MinIO object storage
+    private readonly configService: ConfigService, // Config service
   ) { }
 
   /**
@@ -53,8 +56,7 @@ export class DocumentService {
    * @throws NotFoundException if the document does not exist
    */
   async getDocumentUrl(documentId: string): Promise<GetDocumentUrlResponseDto> {
-    const document = await this.documentModel.findByPk(documentId);
-    if (!document) throw new NotFoundException('Document not found');
+    await this.findById(documentId);
 
     // Return a signed URL for secure download from MinIO
     return { url: await this.minioService.getSignedUrl(`${this.basePath}/${documentId}`) };
@@ -81,8 +83,8 @@ export class DocumentService {
    * @throws NotFoundException if the document does not exist
    */
   async deleteDocument(documentId: string): Promise<DeleteDocumentResponseDto> {
-    const document = await this.documentModel.findByPk(documentId);
-    if (!document) throw new NotFoundException('Document not found');
+    await this.findById(documentId);
+
     await this.minioService.deleteObject(`${this.basePath}/${documentId}`);
     await this.documentModel.destroy({
       where: { id: documentId },
@@ -90,4 +92,54 @@ export class DocumentService {
     });
     return { message: 'Document deleted successfully' };
   }
+
+  /**
+   * Updates the status of a document by ID.
+   */
+  async updateDocumentStatus(id: string, status: DocumentStatus): Promise<void> {
+    const document = await this.findById(id);
+
+    // Optional: validate status if needed
+    if (!Object.values(DocumentStatus).includes(status)) {
+      throw new BadRequestException('Invalid status value');
+    }
+
+    document.status = status;
+    await document.save();
+  }
+
+  /**
+   * Trigger document ingestion and update document status.
+   */
+  async triggerIngestion(documentId: string): Promise<{ message: string }> {
+    const document = await this.findById(documentId);
+
+    const pythonBackendUrl = this.configService.get<string>('PYTHON_BACKEND_URL');
+    const downloadUrl = await this.minioService.getSignedUrl(`${this.basePath}/${documentId}`);
+    const response = await fetch(`${pythonBackendUrl}/ingest`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ documentId, downloadUrl }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to trigger ingestion: ${response.statusText}`);
+    }
+
+    // Optionally, update document status to `ingesting`
+    await document.update({ status: DocumentStatus.INGESTING });
+
+    return { message: 'Ingestion triggered successfully' };
+  }
+
+  /**
+   * Helper method to fetch a document by primary key.
+   * Throws NotFoundException if not found.
+   */
+  async findById(documentId: string): Promise<Document> {
+    const document = await this.documentModel.findByPk(documentId);
+    if (!document) throw new NotFoundException('Document not found');
+    return document;
+  }
+
 }
