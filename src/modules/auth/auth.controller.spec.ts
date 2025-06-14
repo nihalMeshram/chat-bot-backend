@@ -81,7 +81,7 @@ describe('AuthController', () => {
           maxAge: 60 * 60 * 24,
         })
       );
-      expect(mockReply.send).toHaveBeenCalledWith({ message: 'Login successful' });
+      expect(mockReply.send).toHaveBeenCalledWith({ message: 'Login successfully' });
     });
   });
 
