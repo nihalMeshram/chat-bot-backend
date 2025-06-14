@@ -28,7 +28,7 @@ export class Document extends Model<Document> {
   @Column(DataType.STRING)
   declare type: string;
 
-  @Default(DocumentStatus.TO_BE_INGESTED)
+  @Default(DocumentStatus.PENDING)
   @Column(DataType.ENUM(...Object.values(DocumentStatus)))
   declare status: DocumentStatus;
 

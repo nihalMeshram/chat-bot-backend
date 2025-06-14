@@ -1,5 +1,6 @@
 export enum DocumentStatus {
-  TO_BE_INGESTED = 'un_ingested',
+  PENDING = 'pending',
   INGESTING = 'ingesting',
   INGESTED = 'ingested',
+  FAILED = 'failed',
 }
