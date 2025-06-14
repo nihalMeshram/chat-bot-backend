@@ -21,17 +21,29 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+# 🧠 Chat Bot Backend
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Chat-Bot Backend is a modular NestJS backend supporting document-aware question-answering via LLM and RAG.
 
-## Project setup
+- Auth Module: JWT-based login/logout/register with Passport and role-based access control.
+
+- User Module: APIs for creating, updating, deleting (soft delete), restoring, and retrieving users.
+
+- Document Module: Upload, download, delete documents (stored in MinIO).
+
+- Ingestion Api: Trigger's generating and storing embeddings from documents for later semantic use including ingestion status api's.
+
+- Chat Module: Receives user questions, retrieves relevant document embeddings, and forwards them to an external LLM-based RAG (Retrieval-Augmented Generation) service for intelligent responses.
+
+
+## 📦 Project setup
 
 ```bash
 $ npm install
 ```
 
-## Compile and run the project
+
+## 🚀 Compile and run the project
 
 ```bash
 # development
@@ -44,28 +56,78 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
-## Run tests
+
+## 🧪 Run tests
 
 ```bash
 # unit tests
 $ npm run test
 
-# e2e tests
-$ npm run test:e2e
-
 # test coverage
 $ npm run test:cov
 ```
 
-## Support
+## 🐳 Setup using docker compose
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+$ docker compose up -d --build
+```
 
-## Stay in touch
+## 🛠️ Post-Setup Instructions
+
+After installing dependencies or starting the application, make sure to:
+
+1. Run Database Migrations
+```bash
+# Apply all database migrations
+$ npm run migrate
+```
+
+2. Create MinIO Bucket
+Ensure the bucket specified as MINIO_BUCKET in your .env file exists.
+
+- Open: http://localhost:9001
+
+- Login with MINIO_ROOT_USER / MINIO_ROOT_PASSWORD
+
+- Create a new bucket with the value of MINIO_BUCKET
+
+
+## ⚙️ Environment Variables
+
+All required environment variables must be defined in a .env file. Use the provided example.env as a reference.
+
+| Variable              | Required | Default   | Description                                      |
+| --------------------- | -------- | --------- | ------------------------------------------------ |
+| `PORT`                | No       | 3000      | Server port                                      |
+| `HOST`                | No       | 0.0.0.0   | Server host                                      |
+| `NODE_ENV`            | ✅ Yes    |           | Environment (`development` / `production`)       |
+| `DB_USER`             | ✅ Yes    |           | PostgreSQL username                              |
+| `DB_PASSWORD`         | ✅ Yes    |           | PostgreSQL password                              |
+| `DB_NAME`             | ✅ Yes    |           | PostgreSQL database name                         |
+| `DB_PORT`             | No       | 5432      | PostgreSQL port                                  |
+| `DB_HOST`             | No       | localhost | DB host (use `postgres` if using Docker Compose) |
+| `JWT_SECRET`          | ✅ Yes    |           | Secret key used for signing JWT tokens           |
+| `JWT_EXPIRES_IN`      | No       | 1d        | JWT expiration time                              |
+| `MINIO_ENDPOINT`      | ✅ Yes    |           | File storage endpoint (see Docker section below) |
+| `MINIO_REGION`        | No       | us-east-1 | MinIO region                                     |
+| `MINIO_ROOT_USER`     | ✅ Yes    |           | MinIO root access key                            |
+| `MINIO_ROOT_PASSWORD` | ✅ Yes    |           | MinIO secret key                                 |
+| `MINIO_BUCKET`        | ✅ Yes    |           | Bucket name used to store files                  |
+
+
+## 📘 API Documentation
+The Chat Bot backend includes auto-generated Swagger documentation to explore and test API endpoints.
+
+- URL: http://localhost:3000/api
+
+
+## 📬 Stay in touch
 
 - Author - [Nihal Meshram](https://github.com/nihalMeshram)
 - LinkedIn - [@nihal-meshram](https://www.linkedin.com/in/nihal-meshram/)
 
-## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## ⚖️ License
+
+📜 Licensed under the [MIT License](LICENSE) © 2024 Nihal Meshram.
