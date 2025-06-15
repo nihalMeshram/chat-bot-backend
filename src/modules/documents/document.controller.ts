@@ -32,9 +32,13 @@ import { ApiBody, ApiConsumes, ApiCreatedResponse, ApiOkResponse, ApiOperation }
 import { Observable } from 'rxjs';
 import { DocumentStatusService } from './document-status.service';
 import { DocumentStatus } from './types/document.status.type';
+import { JwtAuthGuard, RolesGuard } from '../auth/guards';
+import { Roles } from '@common/decorators/roles.decorator';
+import { UserRole } from 'modules/users/types/user-role.type';
 
 @Controller('documents')
-@UseGuards(AuthGuard('jwt')) // Protect all routes with JWT authentication
+@UseGuards(JwtAuthGuard, RolesGuard) // Applies JWT authentication and role-based authorization
+@Roles(UserRole.ADMIN, UserRole.EDITOR)
 export class DocumentController {
   constructor(
     private readonly docService: DocumentService,
@@ -180,13 +184,14 @@ export class DocumentController {
   async updateStatus(
     @Body() body: IngestWebhookRequestDto,
   ): Promise<IngestWebhookResponseDto> {
-    await this.docService.updateDocumentStatus(body.documentId, body.status);
     this.docStatusService.emitStatus(body.documentId, body.status);
 
     if ([DocumentStatus.INGESTED, DocumentStatus.FAILED].includes(body.status)) {
       this.docStatusService.complete(body.documentId);
+      await this.docService.updateDocumentStatus(body.documentId, body.status);
+      return { message: 'Document status has been updated to ' + body.status };
+    } else {
+      return { message: 'Document current status is ' + body.status };
     }
-
-    return { message: 'Document status update successfully' };
   }
 }
