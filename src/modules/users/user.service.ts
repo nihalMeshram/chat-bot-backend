@@ -59,7 +59,7 @@ export class UserService {
    * Returns [] if no user found.
    */
   async findAll(): Promise<UserResponseDto[]> {
-    const users = await this.userModel.findAll();
+    const users = await this.userModel.findAll({ paranoid: false });
     return plainToInstance(UserResponseDto, users.map(user => user.get({ plain: true })));
   }
 

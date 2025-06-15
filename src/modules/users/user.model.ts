@@ -18,11 +18,11 @@ import { Document } from '../documents/document.model';
   paranoid: true,
   tableName: 'users',
   defaultScope: {
-    attributes: { exclude: ['password', 'deletedAt'] },
+    attributes: { exclude: ['password'] },
   },
   scopes: {
     withPassword: {
-      attributes: { include: ['password', 'deletedAt'] },
+      attributes: { include: ['password'] },
     },
   },
 })

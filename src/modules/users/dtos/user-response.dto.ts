@@ -55,10 +55,10 @@ export class UserResponseDto {
   @Exclude()
   password: string;
 
-  /**
-   * Timestamp when the user was soft-deleted (if applicable).
-   * Excluded from the response.
-   */
-  @Exclude()
+  @ApiProperty({
+    example: '2024-01-10T09:45:23.123Z',
+    description: 'Timestamp of user deletion',
+  })
+  @Expose()
   deletedAt?: Date;
 }
