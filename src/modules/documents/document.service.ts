@@ -115,15 +115,17 @@ export class DocumentService {
     const document = await this.findById(documentId);
 
     const pythonBackendUrl = this.configService.get<string>('PYTHON_BACKEND_URL');
-    const downloadUrl = await this.minioService.getSignedUrl(`${this.basePath}/${documentId}`);
-    const response = await fetch(`${pythonBackendUrl}/ingest`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ documentId, downloadUrl }),
-    });
+    if (pythonBackendUrl) {
+      const downloadUrl = await this.minioService.getSignedUrl(`${this.basePath}/${documentId}`);
+      const response = await fetch(`${pythonBackendUrl}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ documentId, downloadUrl }),
+      });
 
-    if (!response.ok) {
-      throw new Error(`Failed to trigger ingestion: ${response.statusText}`);
+      if (!response.ok) {
+        throw new Error(`Failed to trigger ingestion: ${response.statusText}`);
+      }
     }
 
     // Optionally, update document status to `ingesting`
