@@ -18,24 +18,27 @@ jest.mock('@aws-sdk/s3-request-presigner', () => ({
 
 describe('MinioService', () => {
   let service: MinioService;
-  let configServiceMock: Partial<Record<string, string>> = {};
-  const mockGet = jest.fn((key: string) => configServiceMock[key]);
+  const configServiceMock = {
+    get: jest.fn((key: string) => {
+      const configMap: Record<string, string> = {
+        MINIO_BUCKET: 'test-bucket',
+        MINIO_ENDPOINT_INTERNAL: 'http://internal-minio:9000',
+        MINIO_ENDPOINT_EXTERNAL: 'http://external-minio:9000',
+        MINIO_ROOT_USER: 'test-user',
+        MINIO_ROOT_PASSWORD: 'test-pass',
+        MINIO_REGION: 'us-east-1',
+      };
+      return configMap[key];
+    }),
+  };
 
   beforeEach(async () => {
-    configServiceMock = {
-      MINIO_BUCKET: 'test-bucket',
-      MINIO_ENDPOINT: 'http://localhost:9000',
-      MINIO_ROOT_USER: 'test-user',
-      MINIO_ROOT_PASSWORD: 'test-pass',
-      MINIO_REGION: 'us-east-1',
-    };
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MinioService,
         {
           provide: ConfigService,
-          useValue: { get: mockGet },
+          useValue: configServiceMock,
         },
       ],
     }).compile();
@@ -50,7 +53,7 @@ describe('MinioService', () => {
   describe('uploadStream', () => {
     it('should create an Upload instance and call done()', async () => {
       const stream = new Readable();
-      stream._read = () => { }; // required to avoid error
+      stream._read = () => { };
 
       const doneMock = jest.fn().mockResolvedValue(undefined);
       (Upload as unknown as jest.Mock).mockImplementation(() => ({ done: doneMock }));
@@ -76,7 +79,7 @@ describe('MinioService', () => {
 
   describe('getSignedUrl', () => {
     it('should return a signed URL', async () => {
-      const mockUrl = 'http://signed-url.com/test.pdf';
+      const mockUrl = 'http://external-minio:9000/test.pdf';
       (getSignedUrl as jest.Mock).mockResolvedValue(mockUrl);
 
       const url = await service.getSignedUrl('file-key');
@@ -86,25 +89,24 @@ describe('MinioService', () => {
         expect.any(GetObjectCommand),
         { expiresIn: 3600 }
       );
+
       expect(url).toBe(mockUrl);
     });
   });
 
   describe('deleteObject', () => {
-    it('should send a DeleteObjectCommand to S3', async () => {
+    it('should send a DeleteObjectCommand to internal S3 client', async () => {
       const sendMock = jest.fn().mockResolvedValue({});
-      // Override the private s3 client with a mock
-      (service as any).s3.send = sendMock;
+      // Injecting the mocked send method into s3Internal
+      (service as any).s3Internal.send = sendMock;
 
-      const key = 'file-to-delete.pdf';
-
-      await service.deleteObject(key);
+      await service.deleteObject('file-key-to-delete');
 
       expect(sendMock).toHaveBeenCalledWith(
         expect.objectContaining({
           input: {
             Bucket: 'test-bucket',
-            Key: key,
+            Key: 'file-key-to-delete',
           },
           constructor: DeleteObjectCommand,
         })

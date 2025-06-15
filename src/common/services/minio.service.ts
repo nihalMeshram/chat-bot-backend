@@ -14,7 +14,8 @@ import { Readable } from 'stream';
  */
 @Injectable()
 export class MinioService {
-  private readonly s3: S3Client;
+  private readonly s3Internal: S3Client;
+  private readonly s3External: S3Client;
   private readonly bucket: string;
 
   /**
@@ -26,14 +27,24 @@ export class MinioService {
     this.bucket = this.configService.get<string>('MINIO_BUCKET') as string;
 
     // Initialize the S3 client to communicate with MinIO server
-    this.s3 = new S3Client({
-      region: this.configService.get<string>('MINIO_REGION') || 'us-east-1',
-      endpoint: this.configService.get<string>('MINIO_ENDPOINT'),
-      credentials: {
-        accessKeyId: this.configService.get<string>('MINIO_ROOT_USER') as string,
-        secretAccessKey: this.configService.get<string>('MINIO_ROOT_PASSWORD') as string,
-      },
-      // Use path-style URLs (e.g., http://localhost:9000/bucket/key)
+    const credentials = {
+      accessKeyId: this.configService.get<string>('MINIO_ROOT_USER') as string,
+      secretAccessKey: this.configService.get<string>('MINIO_ROOT_PASSWORD') as string,
+    };
+
+    const region = this.configService.get<string>('MINIO_REGION') || 'us-east-1';
+
+    this.s3Internal = new S3Client({
+      region,
+      endpoint: this.configService.get<string>('MINIO_ENDPOINT_INTERNAL'),
+      credentials,
+      forcePathStyle: true,
+    });
+
+    this.s3External = new S3Client({
+      region,
+      endpoint: this.configService.get<string>('MINIO_ENDPOINT_EXTERNAL'),
+      credentials,
       forcePathStyle: true,
     });
   }
@@ -48,7 +59,7 @@ export class MinioService {
    */
   async uploadStream(stream: Readable, key: string, contentType: string) {
     const upload = new Upload({
-      client: this.s3,
+      client: this.s3Internal,
       params: {
         Bucket: this.bucket,
         Key: key,
@@ -78,7 +89,7 @@ export class MinioService {
     });
 
     // Generate signed URL with 1-hour expiry
-    return getSignedUrl(this.s3, command, { expiresIn: 3600 });
+    return await getSignedUrl(this.s3External, command, { expiresIn: 3600 });
   }
 
   /**
@@ -92,6 +103,6 @@ export class MinioService {
       Key: key,
     });
 
-    await this.s3.send(command);
+    await this.s3Internal.send(command);
   }
 }
