@@ -122,7 +122,8 @@ All required environment variables must be defined in a .env file. Use the provi
 | `DB_HOST`             | No       | localhost | DB host (use `postgres` if using Docker Compose) |
 | `JWT_SECRET`          | ✅ Yes    |           | Secret key used for signing JWT tokens           |
 | `JWT_EXPIRES_IN`      | No       | 1d        | JWT expiration time                              |
-| `MINIO_ENDPOINT`      | ✅ Yes    |           | File storage endpoint (see Docker section below) |
+| `MINIO_ENDPOINT_INTERNAL`      | ✅ Yes    |           | File storage endpoint (internal) |
+| `MINIO_ENDPOINT_EXTERNAL`      | ✅ Yes    |           | File storage endpoint (public) |
 | `MINIO_REGION`        | No       | us-east-1 | MinIO region                                     |
 | `MINIO_ROOT_USER`     | ✅ Yes    |           | MinIO root access key                            |
 | `MINIO_ROOT_PASSWORD` | ✅ Yes    |           | MinIO secret key                                 |
