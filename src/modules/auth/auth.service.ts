@@ -70,7 +70,7 @@ export class AuthService {
    * @returns Object with signed JWT access token
    */
   private buildToken(user: User) {
-    const payload = { sub: user.id, email: user.email, role: user.role };
+    const payload = { sub: user.id, email: user.email, role: user.role, fullName: user.fullName };
     return {
       accessToken: this.jwtService.sign(payload),
     };

@@ -100,6 +100,7 @@ describe('AuthService', () => {
       expect(userModelMock.scope).toHaveBeenCalledWith('withPassword');
       expect(jwtServiceMock.sign).toHaveBeenCalledWith({
         sub: mockUser.id,
+        fullName: mockUser.fullName,
         email: mockUser.email,
         role: mockUser.role,
       });

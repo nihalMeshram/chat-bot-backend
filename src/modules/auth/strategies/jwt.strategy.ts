@@ -33,6 +33,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     // Returned value is attached to the request as `request.user`
     return {
       userId: payload.sub,
+      fullName: payload.fullName,
       email: payload.email,
       role: payload.role,
     };
