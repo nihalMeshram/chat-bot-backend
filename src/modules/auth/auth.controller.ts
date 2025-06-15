@@ -4,8 +4,11 @@ import {
   Body,
   Res,
   HttpCode,
+  Get,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
-import { FastifyReply } from 'fastify';
+import { FastifyReply, FastifyRequest } from 'fastify';
 import { AuthService } from './auth.service';
 import {
   LoginDto,
@@ -15,6 +18,8 @@ import {
   LogoutResponseDto,
 } from './dtos';
 import { ApiCreatedResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
+import { User } from 'modules/users/user.model';
+import { JwtAuthGuard } from '../auth/guards';
 
 @Controller('auth')
 export class AuthController {
@@ -83,5 +88,12 @@ export class AuthController {
     // Remove the cookie by clearing it
     reply.clearCookie('access_token');
     return reply.send({ message: 'Logged out successfully' });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  async getUser(@Req() req: FastifyRequest): Promise<User> {
+    const user = (req.user as any);
+    return user;
   }
 }
