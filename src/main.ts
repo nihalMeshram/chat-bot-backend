@@ -40,6 +40,8 @@ async function bootstrap() {
   await app.register(cors, {
     origin: true, // allow all origins
     credentials: true, // if using cookies/auth
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
   await app.register(multipart, {
