@@ -67,7 +67,7 @@ $ npm run test
 $ npm run test:cov
 ```
 
-## 🐳 Setup using docker compose
+## 🐳 Setup using docker compose (Recomended)
 
 ```bash
 $ docker compose up -d --build
@@ -79,6 +79,9 @@ After installing dependencies or starting the application, make sure to:
 
 #### 1. Run Database Migrations
 ```bash
+# Install packages
+$ npm install
+
 # Apply all database migrations
 $ npm run migration:run
 
@@ -129,6 +132,9 @@ All required environment variables must be defined in a .env file. Use the provi
 | `MINIO_ROOT_PASSWORD` | ✅ Yes    |           | MinIO secret key                                 |
 | `MINIO_BUCKET`        | ✅ Yes    |           | Bucket name used to store files                  |
 
+
+## 🌐 Chat Bot Frontend
+Chat bot frontend is available here: http://localhost
 
 ## 📘 API Documentation
 The Chat Bot backend includes auto-generated Swagger documentation to explore and test API endpoints.
