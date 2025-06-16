@@ -141,6 +141,18 @@ The Chat Bot backend includes auto-generated Swagger documentation to explore an
 
 - URL: http://localhost:3000/api
 
+## 📥 Document Ingestion Webhook (Sample Request)
+To see ingestion status updating on UI use below request
+```bash
+curl -X 'POST' \
+  'http://localhost:3000/documents/ingest/webhook' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "documentId": "40e508ce-0040-4e58-af2b-0e749899493e",
+  "status": "ingested"
+}'
+```
 
 ## 📬 Stay in touch
 
